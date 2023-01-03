@@ -59,7 +59,6 @@ Build scripts have been provided for the following toolchains which are used whe
   *	arm-eabi GCC 8.4.0
   * arm-eabi GCC 4.7.4
 
-
 ## Resources
 [DCEmulation Forums](http://dcemulation.org/phpBB/viewforum.php?f=29): Goldmine of Dreamcast development information and history  
 [Dreamcast Wiki](http://dreamcast.wiki): Large collection of tutorials and articles for beginners  
