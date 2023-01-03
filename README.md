@@ -1,7 +1,7 @@
 # KallistiOS
 
 
-KOS (pronounced "chaos") is an unofficial development environment for the SEGA Dreamcast game console with some support for the NAOMI and NAOMI 2 arcade boards.  
+KOS is an unofficial development environment for the SEGA Dreamcast game console with some support for the NAOMI and NAOMI 2 arcade boards.  
 
 KOS was developed from scratch over the internet by a group of free software developers, and has no relation to the official Katana or WinCE development kits for the DC. This has allowed it to fuel a thriving Dreamcast homebrew scene, powering many commercial releases for the platform over the years. It supports a signficiant portion of the Dreamcast's hardware capabilities and a wide variety of peripherals, accessories, and add-ons for the console, including custom hardware modifications that have been created by the scene. 
 
