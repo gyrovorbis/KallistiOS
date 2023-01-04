@@ -86,6 +86,8 @@ int vmu_set_icon_shape(maple_device_t * dev, uint8 icon_shape);
 */
 int vmu_beep_raw(maple_device_t * dev, uint32 beep);
 
+int vmu_beep(maple_device_t* dev, uint8_t period, uint8_t pulseWidth);
+
 /** \brief  Display a 1bpp bitmap on a VMU screen.
 
     This function sends a raw bitmap to a VMU to display on its screen. This
@@ -148,6 +150,31 @@ int vmu_block_write(maple_device_t * dev, uint16 blocknum, uint8 *buffer);
     \param  vmu_icon        The icon to set.
 */
 void vmu_set_icon(const char *vmu_icon);
+
+typedef struct vmu_time {
+    uint16_t year;     // 0-????
+    uint8_t month;     // 1-12
+    uint8_t day;       // 1-32
+    uint8_t hour;      // 0-24
+    uint8_t minute;    // 0-59
+    uint8_t second;    // 0-59
+    uint8_t week_day;  // 0 (Monday) - 6 (Sunday)
+} vmu_time_t;
+
+int vmu_set_time(maple_device_t * dev, vmu_time_t* time);
+
+int vmu_get_time(maple_device_t * dev, vmu_time_t* time);
+
+#define VMU_BUT_S   (7<<1)
+#define VMU_BUT_C   (6<<1)
+#define VMU_BUT_B   (5<<1)
+#define VMU_BUT_A   (4<<1)
+#define VMU_BUT_R   (3<<1)
+#define VMU_BUT_L   (2<<1)
+#define VMU_BUT_D   (1<<1)
+#define VMU_BUT_U   (1<<0)
+
+int vmu_get_btns(maple_device_t * dev, uint8_t* btns);
 
 /* \cond */
 /* Init / Shutdown */

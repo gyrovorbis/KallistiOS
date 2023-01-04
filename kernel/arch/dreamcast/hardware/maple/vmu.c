@@ -167,6 +167,11 @@ int vmu_beep_raw(maple_device_t * dev, uint32 beep) {
     return MAPLE_EOK;
 }
 
+int vmu_beep(maple_device_t* dev, uint8_t period, uint8_t pulseWidth) {
+    const uint32_t rawBeep = ((period<<24)|((period-pulsewidth))<<16);
+    return vmu_beep_raw(dev, rawBeep);
+}
+
 /* Draw a 1-bit bitmap on the LCD screen (48x32). return a -1 if
    an error occurs */
 int vmu_draw_lcd(maple_device_t * dev, void *bitmap) {
@@ -452,4 +457,175 @@ void vmu_set_icon(const char *vmu_icon) {
     while((dev = maple_enum_type(i++, MAPLE_FUNC_LCD))) {
         vmu_draw_lcd(dev, bitmap);
     }
+}
+
+int vmu_set_time(maple_device_t * dev, vmu_time_t* time) {
+    uint32 *    send_buf;
+
+    assert(dev != NULL);
+
+    /* Lock the frame */
+    if(maple_frame_lock(&dev->frame) < 0)
+        return MAPLE_EAGAIN;
+
+    /* Reset the frame */
+    maple_frame_init(&dev->frame);
+    send_buf = (uint32 *)dev->frame.recv_buf;
+    send_buf[0] = MAPLE_FUNC_CLOCK;
+    memcpy(send_buf + 2, time, sizeof(vmu_time));
+
+    dev->frame.cmd = MAPLE_COMMAND_BWRITE;
+    dev->frame.dst_port = dev->port;
+    dev->frame.dst_unit = dev->unit;
+    dev->frame.length = 4;
+    dev->frame.callback = vmu_gen_callback;
+    dev->frame.send_buf = send_buf;
+    maple_queue_frame(&dev->frame);
+
+    /* Wait for the timer to accept it */
+    if(genwait_wait(&dev->frame, "vmu_set_time", 500, NULL) < 0) {
+        if(dev->frame.state != MAPLE_FRAME_VACANT)  {
+            /* Something went wrong.... */
+            dev->frame.state = MAPLE_FRAME_VACANT;
+            dbglog(DBG_ERROR, "vmu_set_time: timeout to unit %c%c\n",
+                   dev->port + 'A', dev->unit + '0');
+            return MAPLE_ETIMEOUT;
+        }
+    }
+
+    return MAPLE_EOK;
+}
+
+static void vmu_get_time_callback(maple_frame_t *frm) {
+    /* Wakey, wakey! */
+    genwait_wake_all(frm);
+}
+
+int vmu_get_time(maple_device_t * dev, vmu_time_t* time) {
+    maple_response_t *resp;
+    int               rv;
+    uint32           *send_buf;
+
+    assert(dev != NULL);
+
+    /* Lock the frame. XXX: Priority inversion issues here. */
+    while(maple_frame_lock(&dev->frame) < 0)
+        thd_pass();
+
+    /* Reset the frame */
+    maple_frame_init(&dev->frame);
+    send_buf = (uint32 *)dev->frame.recv_buf;
+    send_buf[0] = MAPLE_FUNC_CLOCK;
+
+    dev->frame.cmd = MAPLE_COMMAND_BREAD;
+    dev->frame.dst_port = dev->port;
+    dev->frame.dst_unit = dev->unit;
+    dev->frame.length = 2;
+    dev->frame.callback = vmu_get_time_callback;
+    dev->frame.send_buf = send_buf;
+    maple_queue_frame(&dev->frame);
+
+    /* Wait for the VMU to accept it */
+    if(genwait_wait(&dev->frame, "vmu_get_time", 100, NULL) < 0) {
+        if(dev->frame.state != MAPLE_FRAME_RESPONDED) {
+            /* It's probably never coming back, so just unlock the frame */
+            dev->frame.state = MAPLE_FRAME_VACANT;
+            dbglog(DBG_ERROR, "vmu_get_time: timeout to unit %c%c\n",
+                   dev->port + 'A', dev->unit + '0');
+            return MAPLE_ETIMEOUT;
+        }
+    }
+
+    if(dev->frame.state != MAPLE_FRAME_RESPONDED) {
+        dbglog(DBG_ERROR, "vmu_get_time: incorrect state for unit %c%c (%d)\n",
+               dev->port + 'A', dev->unit + '0', dev->frame.state);
+        dev->frame.state = MAPLE_FRAME_VACANT;
+        return MAPLE_EFAIL;
+    }
+
+    /* Copy out the response */
+    resp = (maple_response_t *)dev->frame.recv_buf;
+    send_buf = (uint32 *)resp->data;
+
+    if(resp->response != MAPLE_RESPONSE_DATATRF
+            || send_buf[0] != MAPLE_FUNC_CLOCK) {
+        rv = MAPLE_EFAIL;
+        dbglog(DBG_ERROR, "vmu_get_time failed: %s(%d)/%08lx\r\n",
+               maple_perror(resp->response), resp->response, send_buf[0]);
+    }
+    else {
+        rv = MAPLE_EOK;
+        memcpy(time, send_buf + 2, sizeof(vmu_time_t));
+    }
+
+    maple_frame_unlock(&dev->frame);
+
+    return rv;
+}
+
+static void vmu_get_btn_callback(maple_frame_t *frm) {
+    /* Wakey, wakey! */
+    genwait_wake_all(frm);
+}
+
+int vmu_get_btns(maple_device_t * dev, uint8_t* btns) {
+    maple_response_t *resp;
+    int               rv;
+    uint32           *send_buf;
+
+    assert(dev != NULL);
+
+    /* Lock the frame. XXX: Priority inversion issues here. */
+    while(maple_frame_lock(&dev->frame) < 0)
+        thd_pass();
+
+    /* Reset the frame */
+    maple_frame_init(&dev->frame);
+    send_buf = (uint32 *)dev->frame.recv_buf;
+    send_buf[0] = MAPLE_FUNC_CLOCK;
+
+    dev->frame.cmd = MAPLE_COMMAND_GETCOND;
+    dev->frame.dst_port = dev->port;
+    dev->frame.dst_unit = dev->unit;
+    dev->frame.length = 1;
+    dev->frame.callback = vmu_get_time_callback;
+    dev->frame.send_buf = send_buf;
+    maple_queue_frame(&dev->frame);
+
+    /* Wait for the VMU to accept it */
+    if(genwait_wait(&dev->frame, "vmu_get_btns", 100, NULL) < 0) {
+        if(dev->frame.state != MAPLE_FRAME_RESPONDED) {
+            /* It's probably never coming back, so just unlock the frame */
+            dev->frame.state = MAPLE_FRAME_VACANT;
+            dbglog(DBG_ERROR, "vmu_get_btns: timeout to unit %c%c\n",
+                   dev->port + 'A', dev->unit + '0');
+            return MAPLE_ETIMEOUT;
+        }
+    }
+
+    if(dev->frame.state != MAPLE_FRAME_RESPONDED) {
+        dbglog(DBG_ERROR, "vmu_get_btns: incorrect state for unit %c%c (%d)\n",
+               dev->port + 'A', dev->unit + '0', dev->frame.state);
+        dev->frame.state = MAPLE_FRAME_VACANT;
+        return MAPLE_EFAIL;
+    }
+
+    /* Copy out the response */
+    resp = (maple_response_t *)dev->frame.recv_buf;
+    send_buf = (uint32 *)resp->data;
+
+    if(resp->response != MAPLE_RESPONSE_DATATRF
+            || send_buf[0] != MAPLE_FUNC_CLOCK) {
+        rv = MAPLE_EFAIL;
+        dbglog(DBG_ERROR, "vmu_get_btns failed: %s(%d)/%08lx\r\n",
+               maple_perror(resp->response), resp->response, send_buf[0]);
+    }
+    else {
+        rv = MAPLE_EOK;
+        memcpy(btns, send_buf + 2, sizeof(uint8_t));
+    }
+
+    maple_frame_unlock(&dev->frame);
+
+    return rv;
 }
