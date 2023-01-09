@@ -162,19 +162,25 @@ typedef struct vmu_time {
 } vmu_time_t;
 
 int vmu_set_time(maple_device_t * dev, vmu_time_t* time);
-
 int vmu_get_time(maple_device_t * dev, vmu_time_t* time);
 
-#define VMU_BUT_S   (7<<1)
-#define VMU_BUT_C   (6<<1)
-#define VMU_BUT_B   (5<<1)
-#define VMU_BUT_A   (4<<1)
-#define VMU_BUT_R   (3<<1)
-#define VMU_BUT_L   (2<<1)
-#define VMU_BUT_D   (1<<1)
-#define VMU_BUT_U   (1<<0)
+/* VMU's button state/cond values, same as capability values */
+#define VMU_DPAD_UP    (1<<0)
+#define VMU_DPAD_DOWN  (1<<1)
+#define VMU_DPAD_LEFT  (2<<1)
+#define VMU_DPAD_RIGHT (3<<1)
+#define VMU_A          (4<<1)
+#define VMU_B          (5<<1)
+#define VMU_MODE       (6<<1)
+#define VMU_SLEEP      (7<<1)
 
-int vmu_get_btns(maple_device_t * dev, uint8_t* btns);
+/* VMU's raw condition data: 0 = PRESSED, 1 = RELEASED */
+typedef uint8_t vmu_cond_t;
+/* VMU's "civilized" state data: 0 = RELEASED, 1 = PRESSED */
+typedef vmu_cond_t vmu_state_t;
+
+void vmu_set_buttons_enabled(maple_device_t* dev, int enable);
+int vmu_get_buttons_enabled();
 
 /* \cond */
 /* Init / Shutdown */
