@@ -161,8 +161,8 @@ typedef struct vmu_time {
     uint8_t week_day;  // 0 (Monday) - 6 (Sunday)
 } vmu_time_t;
 
-int vmu_set_time(maple_device_t * dev, vmu_time_t* time);
-int vmu_get_time(maple_device_t * dev, vmu_time_t* time);
+int vmu_set_time(maple_device_t * dev, vmu_time_t * time);
+int vmu_get_time(maple_device_t * dev, vmu_time_t * time);
 
 /* VMU's button state/cond values, same as capability values */
 #define VMU_DPAD_UP    (1<<0)
@@ -179,7 +179,7 @@ typedef uint8_t vmu_cond_t;
 /* VMU's "civilized" state data: 0 = RELEASED, 1 = PRESSED */
 typedef vmu_cond_t vmu_state_t;
 
-void vmu_set_buttons_enabled(maple_device_t* dev, int enable);
+void vmu_set_buttons_enabled(maple_device_t * dev, int enable);
 int vmu_get_buttons_enabled();
 
 /* \cond */

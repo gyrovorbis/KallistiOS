@@ -113,13 +113,13 @@ void vmu_shutdown() {
 }
 
 /* Dynamically add the periodic polling callback to the driver when button input is enabled. */
-void vmu_set_buttons_enabled(maple_device_t* dev, int enable) {
-    vmu_drv.periodic = (enable != 0)? vmu_periodic : NULL; 
+void vmu_set_buttons_enabled(maple_device_t * dev, int enable) {
+    vmu_drv.periodic = enable ? vmu_periodic : NULL;
 }
 
 /* Determine whether polling for button input is enabled or not by presence of periodic callback. */
 int vmu_get_buttons_enabled() { 
-    return vmu_drv.periodic? 1 : 0;
+    return !!vmu_drv.periodic;
 }
 
 int vmu_use_custom_color(maple_device_t * dev, int enable) {
@@ -139,7 +139,7 @@ int vmu_use_custom_color(maple_device_t * dev, int enable) {
 
 /* The custom color is used while navigating the Dreamcast's file manager.
    You set the RGBA parameters, each with valid range of 0-255 */
-int vmu_set_custom_color(maple_device_t * dev, uint8 red, uint8 green, uint8 blue, uint8 alpha) {
+int vmu_set_custom_color(maple_device_t *dev, uint8 red, uint8 green, uint8 blue, uint8 alpha) {
     vmu_root_t root;
 
     if(vmufs_root_read(dev, &root) < 0)
@@ -161,7 +161,7 @@ int vmu_set_custom_color(maple_device_t * dev, uint8 red, uint8 green, uint8 blu
 /* The icon shape is used while navigating the BIOS menu. The values
    for icon_shape are listed in the biosfont.h and start with
    BFONT_ICON_VMUICON. */
-int vmu_set_icon_shape(maple_device_t * dev, uint8 icon_shape) {
+int vmu_set_icon_shape(maple_device_t *dev, uint8 icon_shape) {
 #ifdef _arch_sub_naomi
     vmu_root_t root;
 
@@ -240,8 +240,8 @@ int vmu_beep_raw(maple_device_t * dev, uint32 beep) {
     return MAPLE_EOK;
 }
 
-int vmu_beep(maple_device_t* dev, uint8_t period, uint8_t pulseWidth) {
-    const uint32_t rawBeep = ((period<<24)|((period-pulsewidth))<<16);
+int vmu_beep(maple_device_t *dev, uint8_t period, uint8_t pulseWidth) {
+    const uint32_t rawBeep = ((period << 24) | ((period - pulsewidth)) << 16);
     return vmu_beep_raw(dev, rawBeep);
 }
 
