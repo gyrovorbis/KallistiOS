@@ -13,6 +13,28 @@ diff --color -ruN gcc-12.2.0/gcc/config/sh/sh-c.cc gcc-12.2.0-kos/gcc/config/sh/
 +  /* Toolchain supports setting up stack for 32MB */
 +  builtin_define ("__KOS_GCC_32MB__");
  }
+diff --color -ruN gcc-12.2.0/gcc/config/sh/sh_treg_combine.cc gcc-12.2.0-kos/gcc/config/sh/sh_treg_combine.cc
+--- gcc-12.2.0/gcc/config/sh/sh_treg_combine.cc   2022-08-19 03:09:52.712664162 -0500
++++ gcc-12.2.0-kos/gcc/config/sh/sh_treg_combine.cc    2023-02-01 22:04:51.874645307 -0600
+@@ -37,6 +37,7 @@
+ #include "cfgrtl.h"
+ #include "tree-pass.h"
+ #include "expr.h"
++#include "tm-preds.h"
+
+ /*
+ This pass tries to optimize for example this:
+@@ -426,10 +427,6 @@
+   return GET_CODE (p) == SET && GET_CODE (XEXP (p, 1)) == IF_THEN_ELSE;
+ }
+
+-// FIXME: Remove dependency on SH predicate function somehow.
+-extern int t_reg_operand (rtx, machine_mode);
+-extern int negt_reg_operand (rtx, machine_mode);
+-
+ // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ // RTL pass class 
+
 diff --color -ruN gcc-12.2.0/gcc/configure gcc-12.2.0-kos/gcc/configure
 --- gcc-12.2.0/gcc/configure	2023-01-02 13:49:36.017438178 -0600
 +++ gcc-12.2.0-kos/gcc/configure	2023-01-02 13:51:59.907644974 -0600
