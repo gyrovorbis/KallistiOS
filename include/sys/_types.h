@@ -96,6 +96,10 @@ typedef long __blkcnt_t;
 typedef long __blksize_t;
 #endif
 
+#ifndef __daddr_t_defined
+typedef long __daddr_t;
+#endif
+
 #ifndef __fsblkcnt_t_defined
 typedef unsigned long long __fsblkcnt_t;
 #endif
@@ -130,7 +134,7 @@ typedef unsigned long   __useconds_t;   /* microseconds (unsigned) */
 
 #if __NEWLIB__ >= 4
 #define _TIME_T_ long long
-#elif  __NEWLIB__ > 3
+#elif __NEWLIB__ > 3
 #define _TIME_T  long long
 #else
 #define _TIME_T_ long

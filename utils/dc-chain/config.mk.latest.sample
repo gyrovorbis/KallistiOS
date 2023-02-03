@@ -18,10 +18,10 @@
 # insight
 
 # Toolchain versions for SH
-sh_binutils_ver=2.35
+sh_binutils_ver=2.40
 sh_gcc_ver=12.2.0
-newlib_ver=4.1.0
-gdb_ver=9.2
+newlib_ver=4.3.0.20230120
+gdb_ver=12.1
 insight_ver=6.8-1
 
 # Tarball extensions to download for SH
@@ -34,7 +34,7 @@ insight_tarball_type=bz2
 # Toolchain for ARM
 # The ARM version of binutils/gcc is separated out as the particular CPU
 # versions we need may not be available in newer versions of GCC.
-arm_binutils_ver=2.34
+arm_binutils_ver=2.40
 arm_gcc_ver=8.4.0
 
 # Tarball extensions to download for ARM
@@ -106,7 +106,7 @@ makejobs=-j2
 # here is to build C, C++, Objective C, and Objective C++. You may want to take
 # out the latter two if you're not worried about them and/or you're short on
 # hard drive space.
-pass2_languages=c,c++,objc,obj-c++
+pass2_languages=c,c++,objc,obj-c++,rust
 
 # Download protocol (http|https|ftp)
 # Specify here the protocol you want to use for downloading the packages.
