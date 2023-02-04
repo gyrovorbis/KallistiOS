@@ -132,10 +132,8 @@ typedef unsigned short __nlink_t;
 typedef long        __suseconds_t;  /* microseconds (signed) */
 typedef unsigned long   __useconds_t;   /* microseconds (unsigned) */
 
-#if __NEWLIB__ >= 4
+#if __NEWLIB__ >= 3
 #define _TIME_T_ long long
-#elif __NEWLIB__ > 3
-#define _TIME_T  long long
 #else
 #define _TIME_T_ long
 #endif
