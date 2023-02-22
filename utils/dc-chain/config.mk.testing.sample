@@ -67,10 +67,10 @@ sh_mpc_tarball_type=gz
 sh_isl_tarball_type=bz2
 
 # GCC dependencies for ARM
-arm_gmp_ver=6.2.1
-arm_mpfr_ver=4.1.0
-arm_mpc_ver=1.2.1
-arm_isl_ver=0.24
+arm_gmp_ver=6.1.0
+arm_mpfr_ver=3.1.4
+arm_mpc_ver=1.0.3
+arm_isl_ver=0.18
 
 # Tarball extensions to download for GCC dependencies for ARM
 arm_gmp_tarball_type=bz2
