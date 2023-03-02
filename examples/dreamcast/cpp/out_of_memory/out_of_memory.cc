@@ -2,8 +2,44 @@
 #include <iostream>
 #include <cstdint>
 #include <malloc.h>
+#include <assert.h>
 
-KOS_INIT_FLAGS(INIT_MALLOCSTATS);
+class SomeTest {
+public:
+    static int i;
+    SomeTest() { 
+        std::cout << "STATIC CTOR " << i << std::endl;
+    }
+    // this should do SOMETHING, and it seems
+    // to never bbe hit
+    ~SomeTest() {
+        printf("NO CLUE");
+        ++i;
+        std::cout << "STATIC DTOR " << --i << std::endl;
+    }
+};
+
+int SomeTest::i = 0;
+
+static SomeTest test;
+
+static void ctor_(void) __attribute__((constructor));
+static void ctor_(void) {
+    test.i++;
+    std::cout << "C CTOR FUNC" << std::endl;
+}
+
+static void dtor_(void) __attribute__((destructor));
+static void dtor_(void) {
+    test.i--;
+    std::cout << "C DTOR FUNC " << std::endl;
+}
+
+static void exit_(void) { 
+    std::cout << "ATEXIT CALLD " << std::endl;
+}
+
+//KOS_INIT_FLAGS(INIT_MALLOCSTATS);
 
 void new_handler_cb() {
     std::cout << "new_handler callback invoked!" << std::endl;
@@ -18,6 +54,7 @@ void new_handler_cb() {
 int main(int argc, char **argv) {
     std::vector<uint8_t> bytes;
     bool failed_once = false;
+    atexit(exit_);
 
     // Sets the global, static C++ handler for when calls to new fail
     // this can be used without exceptions enabled!

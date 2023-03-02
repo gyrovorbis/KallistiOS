@@ -22,6 +22,15 @@
 
 extern int _bss_start, end;
 
+extern void (*__preinit_array_start []) (void) __attribute__((weak));
+extern void (*__preinit_array_end []) (void) __attribute__((weak));
+extern void (*__init_array_start []) (void) __attribute__((weak));
+extern void (*__init_array_end []) (void) __attribute__((weak));
+extern void (*__fini_array_start []) (void) __attribute__((weak));
+extern void (*__fini_array_end []) (void) __attribute__((weak));
+
+void _init(void);
+void _fini(void);
 void _atexit_call_all();
 
 /* ctor/dtor stuff from libgcc. */
@@ -30,8 +39,6 @@ void _atexit_call_all();
 #define _fini fini
 #endif
 
-void _init(void);
-void _fini(void);
 void __verify_newlib_patch();
 
 int main(int argc, char **argv);
@@ -202,6 +209,33 @@ void  __attribute__((weak)) arch_auto_shutdown() {
     rtc_shutdown();
 }
 
+static void libc_init_array(void) {
+  size_t count;
+  size_t i;
+
+  count = __preinit_array_end - __preinit_array_start;
+  for (i = 0; i < count; i++)
+    __preinit_array_start[i] ();
+
+  _init ();
+
+  count = __init_array_end - __init_array_start;
+  for (i = 0; i < count; i++)
+    __init_array_start[i] ();
+}
+
+static void libc_fini_array(void) { 
+  size_t count;
+  size_t i;
+  
+  count = __fini_array_end - __fini_array_start;
+  for (i = count; i > 0; i--)
+    __fini_array_start[i-1] ();
+
+  _fini ();
+}
+
+
 /* This is the entry point inside the C program */
 int arch_main() {
     uint8 *bss_start = (uint8 *)(&_bss_start);
@@ -227,7 +261,7 @@ int arch_main() {
 
     /* Run ctors */
     __verify_newlib_patch();
-    _init();
+    libc_init_array();
 
     /* Call the user's main function */
     rv = main(0, NULL);
@@ -249,7 +283,7 @@ void arch_set_exit_path(int path) {
 void arch_shutdown() {
     /* Run dtors */
     _atexit_call_all();
-    _fini();
+    libc_fini_array();
 
     dbglog(DBG_CRITICAL, "arch: shutting down kernel\n");
 
